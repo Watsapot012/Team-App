@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173d32">
+  <title>ครัวเล็ก | ระบบจัดการร้านอาหาร</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #20352f;
+      --muted: #718078;
+      --line: #dce5df;
+      --paper: #ffffff;
+      --canvas: #f1f5f2;
+      --forest: #173d32;
+      --green: #287453;
+      --green-soft: #e7f2eb;
+      --lime: #d1ed91;
+      --coral: #c6503d;
+      --coral-soft: #fbece8;
+      font-family: "Leelawadee UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background: var(--canvas);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      background: var(--canvas);
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .topbar {
+      min-height: 78px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 14px max(24px, calc((100vw - 1120px) / 2));
+      color: #f5f8f5;
+      background: var(--forest);
+      border-bottom: 4px solid var(--lime);
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.34);
+      border-radius: 8px;
+      color: var(--lime);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .brand-name { margin: 0; font-size: 18px; font-weight: 700; }
+    .brand-subtitle { margin: 2px 0 0; color: #c6d6ce; font-size: 12px; }
+    .service-state { display: flex; align-items: center; gap: 8px; color: #dce9e1; font-size: 13px; }
+    .service-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); }
+
+    main { width: min(1120px, calc(100% - 40px)); margin: 34px auto 56px; }
+    .page-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .eyebrow { margin: 0 0 6px; color: var(--green); font-size: 12px; font-weight: 700; }
+    h1 { margin: 0; color: var(--forest); font-size: 26px; line-height: 1.35; }
+    .page-note { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: start;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 10px 28px rgba(30, 61, 49, .055);
+    }
+    .pane { min-width: 0; padding: 24px; }
+    .pane + .pane { border-left: 1px solid var(--line); }
+    .pane-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 17px;
+    }
+    h2 { margin: 0; color: var(--forest); font-size: 18px; }
+    .count {
+      min-width: 28px;
+      height: 26px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0 8px;
+      border-radius: 5px;
+      color: var(--green);
+      background: var(--green-soft);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .section-label { margin: 22px 0 9px; color: var(--muted); font-size: 12px; font-weight: 700; }
+
+    .menu-list { border-top: 1px solid var(--line); }
+    .menu-row {
+      min-height: 54px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .menu-name { min-width: 0; overflow-wrap: anywhere; font-size: 14px; }
+    .menu-price { flex: none; color: var(--green); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .menu-delete {
+      min-width: 46px;
+      min-height: 32px;
+      padding: 5px 9px;
+      border: 1px solid #edc9c2;
+      border-radius: 4px;
+      color: var(--coral);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .menu-delete:hover { background: var(--coral-soft); }
+    .menu-delete:focus-visible { outline: 3px solid rgba(198,80,61,.2); outline-offset: 2px; }
+    .empty-state { padding: 22px 8px; color: var(--muted); text-align: center; font-size: 13px; }
+
+    .field-row { display: grid; grid-template-columns: minmax(0, 1fr) 116px; gap: 10px; }
+    .field { display: grid; gap: 6px; }
+    .field label { color: #52635b; font-size: 12px; font-weight: 700; }
+    input, select {
+      width: 100%;
+      min-height: 42px;
+      padding: 9px 11px;
+      border: 1px solid #cbd8d0;
+      border-radius: 5px;
+      outline: none;
+      color: var(--ink);
+      background: #fff;
+    }
+    input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(40,116,83,.12); }
+    .button {
+      min-height: 42px;
+      padding: 9px 14px;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      font-weight: 700;
+      transition: background-color .16s ease, border-color .16s ease;
+    }
+    .button-primary { color: #fff; background: var(--green); }
+    .button-primary:hover { background: #205f43; }
+    .button-quiet { color: var(--coral); background: #fff; border-color: #edc9c2; }
+    .button-quiet:hover { background: var(--coral-soft); }
+    .button:disabled { cursor: not-allowed; opacity: .48; }
+    .add-menu-button { width: 100%; margin-top: 12px; }
+
+    .order-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 82px auto;
+      align-items: end;
+      gap: 9px;
+      padding: 13px;
+      border-radius: 6px;
+      background: #f4f7f4;
+    }
+    .order-form .button { padding-inline: 12px; }
+    .order-list { min-height: 190px; margin-top: 19px; border-top: 1px solid var(--line); }
+    .order-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      padding: 12px 2px;
+      border-bottom: 1px solid var(--line);
+    }
+    .order-item-name { display: block; overflow-wrap: anywhere; font-size: 14px; font-weight: 700; }
+    .order-item-detail { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+    .order-subtotal { align-self: center; color: var(--ink); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .order-footer { padding-top: 15px; }
+    .total-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .total-label { color: var(--muted); font-size: 13px; }
+    .total-value { color: var(--forest); font-size: 23px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .footer-actions { display: flex; justify-content: flex-end; margin-top: 13px; }
+    .status-message { min-height: 22px; margin: 12px 0 0; color: var(--coral); font-size: 13px; }
+    .status-message:empty { min-height: 0; margin: 0; }
+
+    @media (max-width: 760px) {
+      .topbar { min-height: 68px; padding-inline: 20px; }
+      main { width: min(100% - 28px, 560px); margin-top: 24px; }
+      .page-heading { align-items: start; flex-direction: column; gap: 5px; }
+      .workspace { grid-template-columns: 1fr; }
+      .pane { padding: 20px; }
+      .pane + .pane { border-top: 1px solid var(--line); border-left: 0; }
+      .order-list { min-height: 125px; }
+    }
+
+    @media (max-width: 430px) {
+      .topbar { padding-inline: 14px; }
+      main { width: calc(100% - 20px); margin-top: 18px; }
+      .pane { padding: 16px; }
+      .service-state { font-size: 11px; }
+      .order-form { grid-template-columns: minmax(0, 1fr) 70px; }
+      .order-form .button { grid-column: 1 / -1; }
+      .field-row { grid-template-columns: minmax(0, 1fr) 96px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">MK</div>
+      <div>
+        <p class="brand-name">ครัวเล็ก</p>
+        <p class="brand-subtitle">Mini Restaurant Management</p>
+      </div>
+    </div>
+    <div class="service-state"><span class="service-dot" aria-hidden="true"></span>ระบบพร้อมใช้งาน</div>
+  </header>
+
+  <main>
+    <div class="page-heading">
+      <div>
+        <p class="eyebrow">การจัดการร้าน</p>
+        <h1>เมนูและรายการสั่งซื้อ</h1>
+      </div>
+      <p class="page-note">ราคาทั้งหมดแสดงเป็นบาท</p>
+    </div>
+
+    <div class="workspace">
+      <section class="pane" aria-labelledby="menu-heading">
+        <div class="pane-heading">
+          <h2 id="menu-heading">เมนูอาหาร</h2>
+          <span id="menu-count" class="count" aria-label="จำนวนเมนู">0</span>
+        </div>
+        <div id="menu-list" class="menu-list" aria-live="polite"></div>
+
+        <h3 class="section-label">เพิ่มเมนูใหม่</h3>
+        <form id="menu-form">
+          <div class="field-row">
+            <div class="field">
+              <label for="menu-name">ชื่ออาหาร</label>
+              <input id="menu-name" name="name" type="text" maxlength="80" placeholder="เช่น ข้าวผัด" required>
+            </div>
+            <div class="field">
+              <label for="menu-price">ราคา (บาท)</label>
+              <input id="menu-price" name="price" type="number" min="0.01" step="0.01" placeholder="60" required>
+            </div>
+          </div>
+          <button class="button button-primary add-menu-button" type="submit">บันทึกเมนู</button>
+        </form>
+      </section>
+
+      <section class="pane" aria-labelledby="order-heading">
+        <div class="pane-heading">
+          <h2 id="order-heading">รายการสั่งซื้อ</h2>
+          <span id="order-count" class="count" aria-label="จำนวนจาน">0</span>
+        </div>
+        <form id="order-form" class="order-form">
+          <div class="field">
+            <label for="order-menu">เลือกอาหาร</label>
+            <select id="order-menu" name="name" required></select>
+          </div>
+          <div class="field">
+            <label for="order-quantity">จำนวน</label>
+            <input id="order-quantity" name="quantity" type="number" min="1" step="1" value="1" required>
+          </div>
+          <button id="add-order-button" class="button button-primary" type="submit">เพิ่มรายการ</button>
+        </form>
+
+        <div id="order-list" class="order-list" aria-live="polite"></div>
+        <div class="order-footer">
+          <div class="total-line">
+            <span class="total-label">ยอดรวม</span>
+            <output id="order-total" class="total-value">0.00</output>
+          </div>
+          <div class="footer-actions">
+            <button id="clear-order" class="button button-quiet" type="button">ล้างรายการ</button>
+          </div>
+        </div>
+      </section>
+    </div>
+    <p id="status-message" class="status-message" role="status" aria-live="polite"></p>
+  </main>
+
+  <script>
+    const menuList = document.querySelector("#menu-list");
+    const menuCount = document.querySelector("#menu-count");
+    const menuSelect = document.querySelector("#order-menu");
+    const orderList = document.querySelector("#order-list");
+    const orderCount = document.querySelector("#order-count");
+    const orderTotal = document.querySelector("#order-total");
+    const statusMessage = document.querySelector("#status-message");
+    const addOrderButton = document.querySelector("#add-order-button");
+    const money = new Intl.NumberFormat("th-TH", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    async function request(path, options = {}) {
+      const response = await fetch(path, {
+        ...options,
+        headers: { "Content-Type": "application/json", ...options.headers }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "ไม่สามารถทำรายการได้");
+      return data;
+    }
+
+    function showMessage(message = "") {
+      statusMessage.textContent = message;
+    }
+
+    function makeEmptyState(message) {
+      const empty = document.createElement("p");
+      empty.className = "empty-state";
+      empty.textContent = message;
+      return empty;
+    }
+
+    function renderMenu(items) {
+      menuList.replaceChildren();
+      menuSelect.replaceChildren();
+      menuCount.textContent = items.length;
+      addOrderButton.disabled = items.length === 0;
+
+      if (items.length === 0) {
+        menuList.append(makeEmptyState("ยังไม่มีเมนูอาหาร เพิ่มเมนูใหม่ได้ด้านล่าง"));
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "ไม่มีเมนูอาหาร";
+        menuSelect.append(option);
+        return;
+      }
+
+      for (const item of items) {
+        const row = document.createElement("div");
+        row.className = "menu-row";
+        const name = document.createElement("span");
+        name.className = "menu-name";
+        name.textContent = item.name;
+        const price = document.createElement("span");
+        price.className = "menu-price";
+        price.textContent = `${money.format(item.price)} บาท`;
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "menu-delete";
+        deleteButton.textContent = "ลบ";
+        deleteButton.setAttribute("aria-label", `ลบเมนู ${item.name}`);
+        deleteButton.addEventListener("click", () => deleteMenu(item.name));
+        row.append(name, price, deleteButton);
+        menuList.append(row);
+
+        const option = document.createElement("option");
+        option.value = item.name;
+        option.textContent = item.name;
+        menuSelect.append(option);
+      }
+    }
+
+    function renderOrder(order) {
+      orderList.replaceChildren();
+      const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+      orderCount.textContent = itemCount;
+      orderTotal.textContent = money.format(order.total);
+
+      if (order.items.length === 0) {
+        orderList.append(makeEmptyState("ยังไม่มีรายการสั่งซื้อ"));
+        return;
+      }
+
+      for (const item of order.items) {
+        const row = document.createElement("div");
+        row.className = "order-row";
+        const description = document.createElement("div");
+        const name = document.createElement("span");
+        name.className = "order-item-name";
+        name.textContent = item.name;
+        const detail = document.createElement("span");
+        detail.className = "order-item-detail";
+        detail.textContent = `${item.quantity} รายการ × ${money.format(item.price)} บาท`;
+        description.append(name, detail);
+        const subtotal = document.createElement("span");
+        subtotal.className = "order-subtotal";
+        subtotal.textContent = `${money.format(item.price * item.quantity)} บาท`;
+        row.append(description, subtotal);
+        orderList.append(row);
+      }
+    }
+
+    async function deleteMenu(name) {
+      if (!window.confirm(`ต้องการลบเมนู "${name}" ใช่หรือไม่?`)) return;
+      try {
+        await request("/api/menu", {
+          method: "DELETE",
+          body: JSON.stringify({ name })
+        });
+        await loadMenu();
+        showMessage(`ลบเมนู "${name}" แล้ว`);
+      } catch (error) {
+        showMessage(error.message);
+      }
+    }
+
+    async function loadMenu() {
+      renderMenu(await request("/api/menu"));
+    }
+
+    async function loadOrder() {
+      renderOrder(await request("/api/order"));
+    }
+
+    document.querySelector("#menu-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formElement = event.currentTarget;
+      const form = new FormData(formElement);
+      try {
+        await request("/api/menu", {
+          method: "POST",
+          body: JSON.stringify({ name: form.get("name"), price: form.get("price") })
+        });
+        formElement.reset();
+        await loadMenu();
+        showMessage("บันทึกเมนูแล้ว");
+      } catch (error) {
+        showMessage(error.message);
+      }
+    });
+
+    document.querySelector("#order-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      try {
+        const order = await request("/api/order", {
+          method: "POST",
+          body: JSON.stringify({ name: form.get("name"), quantity: form.get("quantity") })
+        });
+        renderOrder(order);
+        document.querySelector("#order-quantity").value = "1";
+        showMessage("เพิ่มรายการสั่งซื้อแล้ว");
+      } catch (error) {
+        showMessage(error.message);
+      }
+    });
+
+    document.querySelector("#clear-order").addEventListener("click", async () => {
+      try {
+        renderOrder(await request("/api/order", { method: "DELETE" }));
+        showMessage("ล้างรายการสั่งซื้อแล้ว");
+      } catch (error) {
+        showMessage(error.message);
+      }
+    });
+
+    Promise.all([loadMenu(), loadOrder()]).catch((error) => showMessage(error.message));
+  </script>
+</body>
+</html>
